@@ -1,0 +1,16 @@
+{
+  "name": "bni-education-topics",
+  "version": "1.0.0",
+  "description": "BNI 教育協調員工具：三分鐘培訓／會後培訓主題庫 + 引薦案例素材庫",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "exceljs": "^4.4.0"
+  }
+}

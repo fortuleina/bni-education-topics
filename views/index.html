@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BNI 教育協調員 — 三分鐘培訓 ／ 會後培訓 主題庫</title>
+<style>
+  :root{
+    --ink:#1c1d1f;
+    --ink-soft:#54575c;
+    --ink-faint:#8a8d93;
+    --paper:#faf9f7;
+    --card:#ffffff;
+    --line:#e6e3dd;
+    --accent:#8a5a3a;
+    --accent-soft:#f2e7dd;
+    --tag-bg:#efece6;
+    --good:#4f7a5c;
+    --dual:#3d6b8a;
+    --dual-bg:#e7eef3;
+    --shadow: 0 1px 2px rgba(28,29,31,0.04), 0 4px 14px rgba(28,29,31,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family: "PingFang TC","Noto Sans TC","Helvetica Neue",Arial,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.6;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:40px 24px 80px;}
+  header.top{margin-bottom:22px;}
+  .eyebrow{
+    font-size:12.5px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); font-weight:600; margin-bottom:10px;
+  }
+  h1{font-size:25px;margin:0 0 10px;font-weight:700;letter-spacing:.01em;}
+  .sub{color:var(--ink-soft);font-size:15px;max-width:68ch;margin:0 0 4px;}
+  .intro-card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:20px 22px; margin:22px 0 26px; box-shadow:var(--shadow);
+  }
+  .intro-card h2{font-size:15px;margin:0 0 10px;font-weight:700;}
+  .intro-card ul{margin:0;padding-left:20px;font-size:14.5px;color:var(--ink-soft);}
+  .intro-card li{margin-bottom:6px;}
+
+  /* Tabs */
+  .tabbar{
+    display:flex; gap:6px; border-bottom:1px solid var(--line);
+    margin-bottom:24px; position:sticky; top:0; background:var(--paper); z-index:20; padding-top:4px;
+  }
+  .tab{
+    padding:11px 18px; font-size:15px; font-weight:600; color:var(--ink-faint);
+    cursor:pointer; border-bottom:2px solid transparent; user-select:none;
+    display:flex; align-items:center; gap:8px;
+  }
+  .tab .tab-n{
+    font-size:11.5px; font-weight:600; color:var(--ink-faint); background:var(--tag-bg);
+    border-radius:999px; padding:1px 8px;
+  }
+  .tab.active{color:var(--ink); border-bottom-color:var(--accent);}
+  .tab.active .tab-n{background:var(--accent-soft); color:var(--accent);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .controls{
+    position:sticky; top:47px; background:var(--paper);
+    padding:14px 0; z-index:10; border-bottom:1px solid var(--line);
+    margin-bottom:22px;
+  }
+  input[type=text].search{
+    width:100%; padding:11px 14px; border-radius:10px;
+    border:1px solid var(--line); font-size:14.5px; background:var(--card);
+    margin-bottom:12px; color:var(--ink);
+  }
+  input[type=text].search:focus{outline:2px solid var(--accent-soft); border-color:var(--accent);}
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    border:1px solid var(--line); background:var(--card); color:var(--ink-soft);
+    font-size:13px; padding:6px 12px; border-radius:999px; cursor:pointer;
+    user-select:none; transition:.15s;
+  }
+  .chip:hover{border-color:var(--accent);}
+  .chip.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+  .cat-block{margin-bottom:34px;}
+  .cat-title{
+    font-size:16px; font-weight:700; margin:0 0 4px;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .cat-title .n{font-size:12.5px;color:var(--ink-faint);font-weight:400;}
+  .cat-desc{font-size:13.5px;color:var(--ink-soft);margin:0 0 14px;}
+
+  .topic{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:14px 16px; margin-bottom:10px; box-shadow:var(--shadow);
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .topic input[type=checkbox]{
+    margin-top:4px; width:16px; height:16px; accent-color:var(--good); flex:none; cursor:pointer;
+  }
+  .topic-body{flex:1; min-width:0;}
+  .topic-title-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 4px;}
+  .topic-title{font-size:14.5px;font-weight:600; margin:0;}
+  .badge-dual{
+    font-size:11px; font-weight:600; color:var(--dual); background:var(--dual-bg);
+    border-radius:999px; padding:1px 8px; white-space:nowrap;
+  }
+  .topic-desc{font-size:13.5px;color:var(--ink-soft);margin:0;}
+  .topic.done .topic-title{color:var(--ink-faint); text-decoration:line-through; text-decoration-color:var(--line);}
+  .topic.done .topic-desc{color:var(--ink-faint);}
+  .topic.hidden{display:none;}
+  .cat-block.hidden{display:none;}
+
+  table.cal{width:100%; border-collapse:collapse; font-size:13.5px; margin-top:6px;}
+  table.cal th, table.cal td{
+    text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  table.cal th{color:var(--ink-faint); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em;}
+  table.cal td.m{font-weight:600; white-space:nowrap; width:96px;}
+  table.cal td.cat{white-space:nowrap; width:180px;}
+  table.cal td.note{color:var(--ink-soft); font-size:13px;}
+  table.cal tr.special td{background:var(--accent-soft);}
+
+  .note{
+    font-size:12.5px; color:var(--ink-faint); background:var(--tag-bg);
+    border-radius:10px; padding:10px 14px; margin:8px 0 0;
+  }
+  footer{margin-top:40px; font-size:12.5px; color:var(--ink-faint); border-top:1px solid var(--line); padding-top:16px;}
+
+  /* ===== 案例素材庫 ===== */
+  .case-toolbar{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    flex-wrap:wrap; margin-bottom:14px;
+  }
+  .case-toolbar .btn{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:13.5px; font-weight:600; text-decoration:none;
+    padding:9px 16px; border-radius:999px; border:1px solid var(--line);
+    background:var(--card); color:var(--ink); cursor:pointer;
+    transition:.15s;
+  }
+  .case-toolbar .btn:hover{border-color:var(--accent); color:var(--accent);}
+  .case-toolbar .btn.primary{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .case-toolbar .btn.primary:hover{opacity:.88; color:#fff;}
+  .case-count{font-size:13px; color:var(--ink-faint);}
+
+  .case-card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; margin-bottom:10px; box-shadow:var(--shadow);
+  }
+  .case-card .case-top{
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:10px; margin-bottom:8px;
+  }
+  .case-card .case-parties{font-size:15px; font-weight:700;}
+  .case-card .case-parties .arrow{color:var(--ink-faint); font-weight:400; margin:0 6px;}
+  .case-card .case-amount{font-size:15px; font-weight:700; color:var(--good);}
+  .case-card .case-tags{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;}
+  .case-card .case-tag{
+    font-size:11.5px; font-weight:600; padding:2px 10px; border-radius:999px;
+    background:var(--tag-bg); color:var(--ink-soft);
+  }
+  .case-card .case-tag.big{background:var(--accent-soft); color:var(--accent);}
+  .case-card .case-note{font-size:13.5px; color:var(--ink-soft); margin:0 0 6px;}
+  .case-card .case-meta{font-size:11.5px; color:var(--ink-faint);}
+  .case-empty{
+    text-align:center; padding:48px 20px; color:var(--ink-faint); font-size:14px;
+    background:var(--card); border:1px dashed var(--line); border-radius:12px;
+  }
+  .case-empty a{color:var(--accent); font-weight:600;}
+
+  @media print{
+    .controls, .tabbar{position:static;}
+    .chip{display:none;}
+    input[type=text].search{display:none;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">BNI 分會領導團隊 · 教育協調員工具</div>
+    <h1>三分鐘培訓 ／ 會後培訓 主題庫</h1>
+    <p class="sub">兩種培訓分開整理：三分鐘培訓講給來賓聽，目的是說服他們加入 BNI；會後培訓講給會員聽，目的是教會大家怎麼用好這套系統。切換上方頁籤查看各自的主題。</p>
+  </header>
+
+  <div class="intro-card">
+    <h2>怎麼用這份清單</h2>
+    <ul>
+      <li><strong>三分鐘培訓</strong>面向來賓，邏輯是「先講一個有理論/研究/名人背書的論點，再導向加入 BNI 能獲得這個好處」，重點是讓人覺得有份量、不是空口說白話。</li>
+      <li><strong>會後培訓</strong>面向會員，邏輯是「教會員怎麼把系統用好」，涵蓋引薦技巧、簡報、一對一、系統工具等操作面內容，每次抓 3–5 分鐘一個重點就好。</li>
+      <li>標了 <span class="badge-dual">雙用</span> 的主題兩邊都會出現，代表原本是會後培訓內容，但稍微調整開場跟收尾（把「讓你在分會表現更好」改成「這就是加入 BNI 的價值」）就能兩邊用。</li>
+      <li>佐證的研究、書籍或人名都直接寫在說明文字裡，講的時候心裡有底，被問出處也答得出來；沒有寫明確數據來源的（例如同儕效應、當責機制那幾個）建議點到為止，不要講得太篤定。</li>
+      <li>勾選框可以在瀏覽時幫你做記號，但<strong>不會被儲存</strong>，選定後建議另外記到你的行事曆或分會記錄裡。</li>
+      <li>會後培訓頁籤最下方是你這個會期（2026/10/01–2027/03/25，每週四）的完整週次規劃參考，三分鐘培訓則建議依當週來賓組成臨場決定，不特別按週排。</li>
+      <li><strong>案例素材庫</strong>頁籤整理真實引薦案例，講培訓內容時可以直接拿來當佐證故事；任何人發生引薦都可以點頁籤裡的「＋ 填寫新案例」隨時記錄，資料會即時更新到這裡。</li>
+    </ul>
+  </div>
+
+  <div class="tabbar" id="tabbar">
+    <div class="tab active" data-tab="three">三分鐘培訓 <span class="tab-n" id="three-count-tab"></span></div>
+    <div class="tab" data-tab="after">會後培訓 <span class="tab-n" id="after-count-tab"></span></div>
+    <div class="tab" data-tab="cases">案例素材庫 <span class="tab-n" id="cases-count-tab"></span></div>
+  </div>
+
+  <!-- ===== 三分鐘培訓 ===== -->
+  <div class="tab-panel active" id="panel-three">
+    <div class="controls">
+      <input class="search" id="search-three" type="text" placeholder="搜尋主題關鍵字，例如：人脈、成長、合作…">
+      <div class="chips" id="chips-three"></div>
+    </div>
+    <div id="categories-three"></div>
+  </div>
+
+  <!-- ===== 會後培訓 ===== -->
+  <div class="tab-panel" id="panel-after">
+    <div class="controls">
+      <input class="search" id="search-after" type="text" placeholder="搜尋主題關鍵字，例如：一對一、簡報、訪客…">
+      <div class="chips" id="chips-after"></div>
+    </div>
+    <div id="categories-after"></div>
+
+    <div class="cat-block" id="calendar-block">
+      <h3 class="cat-title">本會期週次規劃參考 <span class="n">2026/10/01 – 2027/03/25，每週四，共 25 週（2/4 農曆新年停會）</span></h3>
+      <p class="cat-desc">2/4 適逢農曆新年，分會停會不算在內。3/4 起四週目前標「待確認」，等內容確定後再補上。</p>
+      <table class="cal">
+        <thead><tr><th>日期</th><th>建議類別</th><th>備註</th></tr></thead>
+        <tbody id="cal-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== 案例素材庫 ===== -->
+  <div class="tab-panel" id="panel-cases">
+    <div class="controls">
+      <input class="search" id="search-cases" type="text" placeholder="搜尋引薦人、被引薦人或案例內容…">
+      <div class="chips" id="chips-cases">
+        <div class="chip" data-filter="internal">內部引薦</div>
+        <div class="chip" data-filter="external">外部引薦</div>
+        <div class="chip" data-filter="recurring">週期性固定引薦</div>
+        <div class="chip" data-filter="oneoff">單次引薦</div>
+        <div class="chip" data-filter="big">大額引薦（超過 10 萬）</div>
+      </div>
+    </div>
+    <div class="case-toolbar">
+      <span class="case-count" id="case-count"></span>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a class="btn" id="export-btn" href="/api/referrals/export.xlsx">匯出 Excel</a>
+        <a class="btn primary" href="/referral">＋ 填寫新案例</a>
+      </div>
+    </div>
+    <div id="cases-list"></div>
+  </div>
+
+  <footer>
+    <div class="note">主題整理參考來源：BNI Western PA、Coach Johncey（BNI Education Slot Topics）、BNI Education Moments（bniem.com）、Ramedivia、Anchorera、BNI 華榮分會／大鴻分會／台北巨亮分會／台南大信分會公開資料；三分鐘培訓理論與數據引用 Mark Granovetter（1973）與 Stanford／MIT／Harvard 2022 年 LinkedIn 研究、Ronald Burt 結構洞理論與 2004 年供應鏈經理實證研究、Robin Dunbar、Robert Cialdini、Charles Handy 第二曲線理論、Frans Johansson《麥迪奇效應》、Henry Chesbrough 開放式創新理論、Harvard Business Review〈Connect and Develop〉（P&G）、Wharton 大學轉介紹客戶價值研究、Corporate Finance Institute（Ansoff 矩陣）、Adam Grant《Give and Take》、Malcolm Gladwell《引爆趨勢》、Warren Buffett 公開語錄、小山昇／株式会社武蔵野公開資料等。實際使用時建議依所屬分會規範與地區總監指引調整，數據類主題建議註明年份與研究對象，避免講得過於篤定。</div>
+    <p style="margin-top:14px;">整理日期：2026 年 8 月</p>
+  </footer>
+
+</div>
+
+<script>
+/* ============ 三分鐘培訓 DATA ============ */
+const THREE_DATA = [
+  {
+    cat: "BNI 核心理念與系統優勢",
+    desc: "直接回答「加入 BNI 到底對我有什麼好處」，是說服來賓最基本的一組。",
+    topics: [
+      ["引薦系統 vs. 傳統陌生開發", "轉介紹自帶信任轉移，對方一開始就帶著推薦人的信任來找你，跟冷開發完全不同的信任起點，成交率通常更高。這正是 BNI 引薦系統設計的核心目的。", false],
+      ["Givers Gain（付出者收穫）", "先付出的人長期反而拿得更多，這不是道德口號，背後有互惠原理等行為科學支撐（見下方 Cialdini 互惠原理）。BNI 把這個原則做成一套每週都在運作的具體系統。", true],
+      ["VCP 流程：能見度 → 公信力 → 獲利力", "信任關係需要時間累積成生意，用這個流程說明「為什麼不能期待第一週就成交，但長期一定看得到效果」。", true]
+    ]
+  },
+  {
+    cat: "人脈理論：為什麼你需要更多元的人脈",
+    desc: "從社會學、行為科學角度說明人脈的「質」與「廣度」如何實際帶來機會，適合想講點有份量內容的場合。",
+    topics: [
+      ["弱連結的力量", "史丹佛社會學家 Mark Granovetter 1973 年的經典研究，加上 2022 年史丹佛／MIT／哈佛商學院用 LinkedIn 2000 萬人做的五年追蹤研究都發現：真正帶來新工作機會、新資訊的往往是「泛泛之交」而非熟朋友，因為熟人跟你資訊重疊度太高。BNI 讓你系統性認識一群原本人生軌跡不會交會的專業人士弱連結。", false],
+      ["結構洞理論", "組織行為學者 Ronald Burt 提出：人脈網絡裡多數人的圈子彼此不相通，能站在不同圈子之間當橋樑的人，會拿到更多元、更少人知道的資訊，研究也顯示這類人薪水更高、升遷更快。一個 BNI 分會匯集近 40 個不同產業，等於一次讓你站上幾十個原本互不相通的產業橋樑。", false],
+      ["鄧巴數 150", "人類學家 Robin Dunbar 提出，人腦能穩定維繫的關係數量上限大約 150 人，超過這個數字關係品質會被稀釋。與其漫無目的地加好友，不如用 BNI 的分會架構跟一對一機制，把有限的社交頻寬優先投資在真正會帶來生意的人身上。", false],
+      ["互惠原理", "心理學家 Robert Cialdini《影響力》七大原則之一：人被幫助後會有回報的心理驅力，先付出的人長期反而拿得更多，這在大量商業場景被驗證過。這正是 Givers Gain 的科學基礎。", false],
+      ["口碑的兩面刃", "研究指出一位不滿意的客戶平均會告訴 11 人，這 11 人再各自告訴 5 人，一次負評能傳到 66 人耳裡。口碑其實一直在運作，差別只在你有沒有主動引導它的方向，與其被動等口碑發生，不如加入一個有意識設計出正向轉介系統的組織。", false],
+      ["同儕效應", "身邊圈子的企圖心與行為會影響個人表現與成功機率，多篇創業相關研究都觀察到這個現象。BNI 把你放進一群同樣認真經營事業、彼此有動機互相成就的人中間。（概念普遍被接受，沒有單一決定性研究，引用時建議點到為止，不要講具體數字。）", false],
+      ["稀缺與排他性心理", "心理學上稀缺、限量的資源會被感知為更有價值，獨家／邀請制的圈子之所以強大，部分原因就是排他性創造的信任與投入感。BNI 一個分會一個行業只收一位，不只是不搶生意，更是用排他性創造更高的信任濃度。", false],
+      ["六度分隔理論", "任何兩人之間平均只隔幾個中介點就能連上，只要人脈夠廣夠多元，理論上能觸及的資源遠比想像中近。BNI 分會裡每個人背後都帶著自己的人脈網，等於一次大幅縮短你跟潛在客戶／資源之間的距離。", false],
+      ["目標追蹤與當責機制", "有明確進度追蹤跟固定回報對象時，人更容易維持行動力，這也是教練、健身等機制常用的原理。BNI 每週固定的例會、PALMS 紀錄、一對一，本質上就是一套讓你的事業目標有人陪著追蹤的架構。（同屬普遍接受的概念，避免引用過於精確的數字。）", false]
+    ]
+  },
+  {
+    cat: "事業成長與異業合作",
+    desc: "回答「我生意已經不錯了，為什麼還需要 BNI」，訴求對象是已有一定基礎、想找第二成長曲線的來賓。",
+    topics: [
+      ["第二曲線理論", "管理學者 Charles Handy 提出：企業平均壽命已從 40 年縮短到 14 年，所有商業模式都會走 S 型曲線，重點是要在第一曲線還在高峰、公司最舒服自滿的時候就開始找第二曲線，等業績下滑才找已經太晚。BNI 讓你在忙第一曲線的同時，持續接觸到能激發第二曲線的人與想法。", false],
+      ["麥迪奇效應", "Frans Johansson 的暢銷書指出，突破性創新常發生在不同領域、不同背景的人交會的交叉點上，甚至「外行人」反而更容易看到專家看不到的可能性。一個 BNI 分會匯集近 40 個完全不同產業的人，等於每週都在製造這種跨領域交叉點。", false],
+      ["結構洞與好點子的實證研究", "Ronald Burt 2004 年針對美國一家大型電子公司 673 位供應鏈經理的研究發現：人脈跨越不同群體的經理，提出的點子被評為「傑出」的機率是人脈封閉者的兩倍（32% vs 16%），點子被否決的機率也低很多（14% vs 43%）。決定你能不能想出好點子的是人脈的「多樣性」，不是「數量」。", false],
+      ["開放式創新", "學者 Henry Chesbrough 提出：企業不該只靠內部研發部門想點子，該主動向外部夥伴、其他產業借力，才能加速創新、降低研發成本與風險。多數中小企業沒有資源做正式的開放式創新，但透過 BNI 認識不同產業的人，就是在用很低的成本建立自己的開放式創新網絡。", false],
+      ["策略聯盟研究", "多篇針對中小企業的研究顯示，願意建立策略聯盟、異業合作的企業，在創新表現與拓展速度上普遍優於單打獨鬥的企業。BNI 的引薦夥伴關係本質上就是一個低門檻、低風險的策略聯盟練習場。", false],
+      ["P&G「Connect and Develop」開放式創新實績", "寶僑 2000 年起改用向外部借力的創新策略，結果研發生產力提升近 60%，開放式創新現在貢獻公司超過 35% 的創新成果、帶來數十億美元營收，歐蕾、Swiffer、品客 Prints 都是這樣誕生的。全球最大消費品公司之一用真金白銀證明「向外部借力」能大幅拉升營收與創新效率。", false],
+      ["轉介紹客戶的真實價值（Wharton 研究）", "賓州大學華頓商學院針對一家德國銀行的長期研究發現：轉介紹來的客戶，顧客終身價值比一般管道客戶高約 16–25%，流失率低約 18%，且這個留存優勢會持續不衰減，換算下來轉介紹方案的投資報酬率約 60%。轉介紹來的客戶不只好成交，留得更久、貢獻更多利潤。", false],
+      ["Ansoff 成長矩陣", "企管系必教的成長策略框架：市場滲透、市場開發（拿現有產品打新市場）、產品開發（給現有市場推新產品）、多角化。不管公司想往哪個象限成長，幾乎都繞不開「找到對的外部夥伴」，BNI 分會本身就是一個現成的、跨產業的潛在合作夥伴庫。", false]
+    ]
+  },
+  {
+    cat: "名人名言與暢銷書",
+    desc: "借知名度高的作者或名言撐場面，適合想讓內容聽起來「有聽過」、降低陌生感的時候用。",
+    topics: [
+      ["Give and Take：給予者的優勢", "華頓商學院最年輕終身教授 Adam Grant 的研究暢銷書，把人分成 Giver、Taker、Matcher 三種，發現 Giver 長期來看最容易成功，因為他們累積出的信任與人脈品質是 Taker 拿不到的。幾乎是 Givers Gain 的學術版佐證：不是 BNI 自創的口號，是被研究驗證過的成功模式。", false],
+      ["連結者（Connectors）", "Malcolm Gladwell 暢銷書《引爆趨勢》提出的概念：少數認識很多人、橫跨很多不同圈子的人，握有大量弱連結，能讓資訊與機會用不成比例的速度擴散出去。一個 BNI 分會就是把你放進一群連結者的匯集點。", false],
+      ["Warren Buffett 的信譽名言", "「建立信譽要花 20 年，毀掉它只要 5 分鐘。」信譽是需要長期、規律累積的東西，BNI 的固定例會、一對一、引薦追蹤機制，本質上就是在幫你系統化、有紀律地累積這種急不來的東西。", false],
+      ["小山昇的五年兩倍成長計畫", "日本經營顧問小山昇《5年で売上2倍の経営計画をたてなさい》（繁中版《5年營收2倍成長》）主張經營要用長期視角想「五年後該長成什麼樣子」，而不是被短期業績綁架。他 1989 年接手武蔵野時公司紀律渙散，靠「環境整備」等方法轉型，後來兩度獲得日本經營品質賞（2000、2010，日本首家兩度獲獎的公司），連續 12 年增收增益。導向 BNI：如果你認同五年計畫的思維，那「五年後你手上有什麼樣的人脈與合作網絡」本來就該是這份計畫的一部分，BNI 提供的正是需要長期規律經營才會看到複利效果的東西。", false],
+      ["Rich Dad Poor Dad 作者 Robert Kiyosaki 的人脈名言", "「世界上最富有的人都在尋找、建立人脈網絡，其他人只是在找工作。」這句話被廣泛引用、經常出現在他自己的社群發文與訪談中，簡單直白，很適合當開場的破題句，再接到 BNI 就是幫你系統性建立這種網絡的地方。", false],
+      ["Reid Hoffman《The Start-up of You》：把自己當新創來經營", "LinkedIn 創辦人 Reid Hoffman 的暢銷書，主張每個人都該用經營新創公司的心態管理職涯——找到自己獨特的競爭優勢、保留彈性計畫、承擔算過的風險，書中特別強調人脈網絡是這套心法能不能成功的關鍵資產之一。導向：BNI 就是一個現成、規律運作的管道，讓你持續投資這項「人脈資產」，而不是等真的需要時才臨時找。", false],
+      ["「你是身邊最常相處的五個人的平均值」", "這句話廣泛被歸於成功學大師 Jim Rohn 引用、也常出現在各類商業／自我成長書籍與演講中，是圈內流傳度很高的一句話；確切最早出處查證上仍有爭議，講的時候可以說「這是業界很常引用的一句話」，不用咬死是誰原創。導向：想讓自己的事業往上走，先看看你每週固定會遇到的是哪五種人，BNI 讓你能主動選擇要把自己放進哪一群人裡。", false],
+      ["「攜手是開始，同心是過程，協力是成功」", "這句話在網路上幾乎都被標成 Henry Ford 說的，但查證後真正最早的出處其實是美國作家 Edward Everett Hale，收錄在 1922 年一份總統演講合輯裡，後來被長年誤傳、掛在福特名下廣泛引用。講的時候可以說「這句常被引用、也常被誤認為是福特說的」，比較嚴謹。導向：光是聚在一起只是開始，BNI 提供的固定架構才是讓大家「同心、協力」走到最後一步的關鍵。", false],
+      ["Porter Gale《Your Network Is Your Net Worth》", "矽谷行銷人 Porter Gale 的暢銷書，書名本身就是一句被業界大量引用的話：「你的人脈，就是你的身價。」書中主張在數位時代，人脈的品質跟經營方式直接決定一個人能不能把握機會、創造財富與幸福感。導向：這句話幾乎是三分鐘培訓最好的收尾金句之一——BNI 就是幫你把「人脈」這項資產，用有紀律的方式持續累積起來。", false]
+    ]
+  },
+  {
+    cat: "案例與數據佐證",
+    desc: "跟會後培訓共用，只要把收尾從「讓你在分會表現更好」改成「這就是加入 BNI 的價值」即可。",
+    topics: [
+      ["真實引薦成功案例分享", "用一個具體故事說明引薦如何真正走到成交，讓來賓看到系統真的有用，比空講理論更有說服力。", true],
+      ["用數據說話：引薦轉換率", "引用產業或分會內部數據佐證引薦的價值，增加來賓對這套系統的信心。", true],
+      ["產業標竿案例", "引用其他產業或分會的成功做法作為借鏡，讓來賓想像自己產業套用後的樣子。", true]
+    ]
+  }
+];
+
+/* ============ 會後培訓 DATA ============ */
+const AFTER_DATA = [
+  {
+    cat: "BNI 核心理念與系統",
+    desc: "幫會員理解「為什麼這套系統這樣設計」，是最基礎但最容易被忽略的一類。",
+    topics: [
+      ["Givers Gain（付出者收穫）", "為什麼「先給」才是 BNI 運作的根本邏輯，用一個具體例子說明先付出如何換來長期回報。", true],
+      ["VCP 流程：能見度 → 公信力 → 獲利力", "說明信任關係如何隨時間累積成生意，提醒大家不要期待第一週就成交。", true],
+      ["認識 BNI 的核心價值觀", "挑一兩個核心價值（例如終身學習、傳統加創新）搭配分會裡的真實例子來說明。", false],
+      ["分會領導團隊各職位在做什麼", "簡短介紹會長、秘書財務、教育協調員等分別負責什麼，讓新會員知道有問題該找誰。", false]
+    ]
+  },
+  {
+    cat: "名人名言與暢銷書",
+    desc: "借知名度高的作者或名言，提醒會員 Givers Gain 不是 BNI 自創的口號，而是被反覆驗證、被寫成暢銷書的成功心法。",
+    topics: [
+      ["人性的弱點：真誠地關心別人", "Dale Carnegie《人性的弱點》核心原則：真誠地關心別人，而不是想著別人能為你做什麼。用 BNI 的一對一機制，把這個近 90 年前的經典原則變成每週要練習的具體行動。", false],
+      ["Never Eat Alone：先問我能幫上什麼忙", "Keith Ferrazzi 暢銷書核心主張：厲害的人脈經營者問的是「我能幫上什麼忙」而不是「誰能幫我」，並且要在真正需要人脈之前就先建立關係。提醒會員平常就要主動經營一對一，不要等有需求才找人。", false],
+      ["Zig Ziglar 的付出者名言", "「如果你能幫助足夠多的人得到他們想要的東西，你就能得到你人生中想要的一切。」這句話被廣泛認為是 Givers Gain 精神的思想源頭之一，可以用來提醒會員：付出不是口號，是被驗證過的成功心法。", false],
+      ["稻盛和夫「利他是經商的原點」", "日本經營之聖稻盛和夫在《活法》中主張，利他精神才是商業經營的根本，不是追求私利的手段，他把「在追求全體員工幸福的同時，為社會進步做出貢獻」訂為京瓷的經營理念。提醒會員：Givers Gain 不是只有西方的講法，東方經營大師講的也是同一件事——先貢獻、再獲利，長期反而走得更遠。", false]
+    ]
+  },
+  {
+    cat: "精準引薦技巧",
+    desc: "教大家怎麼給出「好引薦」，是教育時刻最常被用到、也最實用的一類主題。",
+    topics: [
+      ["引薦的四個層級", "從壞引薦、一般引薦、理想引薦到夢幻引薦，教大家分辨引薦品質高低。", false],
+      ["五步驟引薦流程", "精準說出需求 → 夥伴記住輪廓 → 主動媒合 → 引薦交接 → 理想客戶上門，逐步拆解。", false],
+      ["「具體才是王道」（Specific is Terrific）", "示範一個模糊的請求跟一個具體的 Ask 差在哪裡，讓大家現場練習改寫自己的 Ask。", false],
+      ["如何正確地介紹你的引薦夥伴", "引薦別人時該說什麼、不該說什麼，避免話說太滿反而讓對方難做事。", false],
+      ["關係型引薦 vs. 交易型引薦", "比較兩種引薦帶來的長期價值差異，鼓勵大家經營關係而非只求成交一次。", false],
+      ["你的引薦好轉介嗎？", "帶大家自我檢視：別人有多容易把你介紹出去，你的說明夠不夠清楚。", false],
+      ["價值導向的追蹤（Follow-up）", "收到引薦後，該用什麼時機、什麼語氣跟進才不會讓客戶反感。", false],
+      ["在生活中隨處發現引薦機會", "訓練大家在非例會場合（聚餐、家長會、健身房）也能捕捉到商機。", false]
+    ]
+  },
+  {
+    cat: "自我介紹與簡報技巧",
+    desc: "打磨每週固定會出現的表達環節，效果最容易被立即感受到。",
+    topics: [
+      ["打造有效的 25 秒／60 秒自我介紹", "用「我是、我有、我要」的結構，帶大家現場練習一次精簡版。", false],
+      ["如何讓自我介紹令人印象深刻", "分析什麼樣的開場最容易被記住，並舉一兩個好例子跟壞例子對比。", false],
+      ["專題簡報（Feature Presentation）怎麼準備", "拆解 5 分鐘簡報的黃金結構：問題、解法、案例、明確的 Ask。", false],
+      ["30 秒簡報健檢", "現場示範修改一段沒有重點的自我介紹，讓大家看到「改一下差很多」。", false],
+      ["用故事代替條列", "示範如何用一個小故事取代死板的產品條列介紹，更容易被記住。", false],
+      ["不在場時，你的品牌形象怎麼辦？", "討論找替補、事先準備代打簡報的重要性，避免因缺席而失去曝光。", false]
+    ]
+  },
+  {
+    cat: "一對一會談（1-2-1）",
+    desc: "讓大家把一對一從「聊天」升級成「真的能帶來引薦的會談」。",
+    topics: [
+      ["讓一對一會談真正產生效益", "避免淪為純聊天，說明如何帶著目的、帶著問題去談。", false],
+      ["九宮格深度會談法", "介紹 BNI 常用的一對一訪談表格與使用方式，讓會談更有結構。", false],
+      ["你的舞伴卡（GAINS）藏著多少商機", "教大家善用彼此的目標、興趣、專長資料去挖掘引薦切入點。", false],
+      ["一對一該找誰談？", "策略性選擇會談對象，而不是輪到誰就找誰，優先找能互補的夥伴。", false],
+      ["如何幫夥伴定義理想客戶", "整理一對一時該問的關鍵問題，幫助雙方更了解彼此要的客戶輪廓。", false]
+    ]
+  },
+  {
+    cat: "分會工具與系統",
+    desc: "很多會員其實沒把系統工具用滿，這類主題投資報酬率很高。",
+    topics: [
+      ["BNI Connect / App 實用技巧", "示範幾個大家常忽略的功能，例如快速找會員資料、記錄引薦。", false],
+      ["把 BNI Connect 當你的 CRM 在用", "教會員善用系統管理人脈，而不是只在開會前一天才打開。", false],
+      ["PALMS 系統與追蹤", "說明出席、引薦、拜訪紀錄如何影響分會表現與個人可信度。", false],
+      ["BNI Business Builder 怎麼用", "介紹這套目標追蹤工具的實際操作，幫大家把年度目標數字化。", false],
+      ["認識 BNI Podcast 與 BNI Academy", "分享官方提供的免費學習資源，鼓勵大家平常也能自我進修。", false]
+    ]
+  },
+  {
+    cat: "會議禮儀與分會文化",
+    desc: "維持分會運作品質、留住新會員的關鍵，適合資深會員或幹部主講。",
+    topics: [
+      ["訪客該怎麼邀請、怎麼接待", "從邀約話術到現場招呼的完整流程，提升訪客轉正式會員的機率。", false],
+      ["出席策略與請假的眉角", "說明為什麼準時出席比想像中更重要，以及請假該提前多久通知。", false],
+      ["常見的「會員紅綠燈」錯誤", "點名幾個新舊會員容易踩的地雷（遲到、滑手機、只顧自己講）。", false],
+      ["換名片以外的破冰話題", "提供幾個能快速拉近距離的開場白，取代制式的自我介紹。", false],
+      ["分會文化是每週由你決定的", "說明每個人的態度、準備程度，如何一點一滴形塑整體氣氛。", false],
+      ["新會員的第一個 90 天", "分享新會員剛加入時最容易卡關的地方，以及如何幫他們快速上手。", false]
+    ]
+  },
+  {
+    cat: "目標設定與個人成長",
+    desc: "把個人事業目標跟 BNI 的活動連結起來，讓會員感覺投入是有方向的。",
+    topics: [
+      ["用 SMART 原則設定你的 BNI 年度目標", "具體示範如何寫出一個可追蹤、有截止日期的目標。", false],
+      ["建立你的個人事業成長地圖", "把引薦目標跟整體事業計畫連結起來，而不是各自獨立。", false],
+      ["從數據看自己的引薦成效", "教大家怎麼回顧自己過去半年的引薦紀錄，找出可以改進的地方。", false],
+      ["感恩與慶祝：別忘了肯定夥伴的付出", "說明公開感謝如何強化分會凝聚力，鼓勵大家多說謝謝。", false]
+    ]
+  },
+  {
+    cat: "互動遊戲與破冰",
+    desc: "適合氣氛需要調劑、或想讓教育時刻更有參與感的時候使用。",
+    topics: [
+      ["引薦角色扮演", "找兩位志願者現場演練一段 60 秒的引薦情境，演完大家一起討論哪裡可以更好。", false],
+      ["糟糕引薦賓果", "準備幾個常見的引薦地雷例子，讓大家搶答找出問題在哪。", false],
+      ["Show & Tell", "請幾位會員帶一個能具體說明自己服務的道具或案例，用實物說故事。", false],
+      ["「跟 10 歲小孩解釋你的工作」挑戰", "訓練會員把專業講得淺顯易懂，現場找人試講一次。", false],
+      ["猜職業遊戲", "描述一個客戶痛點，讓大家猜是哪個職業能解決，順便認識彼此的專長。", false],
+      ["兩個真相一個謊言（商務版）", "用趣味方式讓夥伴更認識彼此的專業背景與經歷。", false]
+    ]
+  },
+  {
+    cat: "案例分享與數據佐證",
+    desc: "用具體故事跟數字增加說服力，適合分會運作一段時間、有累積案例後使用。",
+    topics: [
+      ["真實引薦成功案例分享", "用一個具體故事說明引薦如何真正走到成交，讓大家看到系統真的有用。", true],
+      ["用數據說話：引薦轉換率", "引用產業或分會內部數據佐證引薦的價值，增加大家的信心。", true],
+      ["客戶保留術", "分享如何用小動作留住現有客戶、創造回購與口碑，不只是拓新客。", false],
+      ["產業標竿案例", "引用其他產業或分會的成功做法作為借鏡，開拓大家的想像空間。", true]
+    ]
+  }
+];
+
+/* ============ 本會期週次規劃（2026/10/01–2027/03/25，每週四，共 25 週，2/4 農曆新年停會） ============ */
+const SCHEDULE = [
+  ["2026/10/01","BNI 核心理念與系統","七大核心價值",false],
+  ["2026/10/08","BNI 核心理念與系統","五大基本功",false],
+  ["2026/10/15","分會工具與系統","紅綠燈重要性及計算方式",false],
+  ["2026/10/22","BNI 核心理念與系統","出席的重要性",false],
+  ["2026/10/29","精準引薦技巧","如何給予內部及外部引薦",false],
+  ["2026/11/05","一對一會談（1-2-1）","有效的 121",false],
+  ["2026/11/12","自我介紹與簡報技巧","20 秒簡報",false],
+  ["2026/11/19","自我介紹與簡報技巧","五分鐘簡報",false],
+  ["2026/11/26","BNI 核心理念與系統","帶來賓的重要性 + 邀約來賓",false],
+  ["2026/12/03","目標設定與個人成長","會員資料表 + GAINS 表",false],
+  ["2026/12/10","目標設定與個人成長","業務人脈圈 + 十大客戶表",false],
+  ["2026/12/17","精準引薦技巧","PT 重要性 + 組建關鍵",false],
+  ["2026/12/24","BNI 核心理念與系統","培訓的重要性",false],
+  ["2026/12/31","會議禮儀與分會文化","付出者收穫案例",false],
+  ["2027/01/07","分會工具與系統","Connect 系統的使用",false],
+  ["2027/01/14","互動遊戲與破冰","如何與夥伴、來賓建立連結",false],
+  ["2027/01/21","會議禮儀與分會文化","長佑分會的未來與展望",false],
+  ["2027/01/28","分會工具與系統","導師系統的重要性 + 成為導師的方式",false],
+  ["2027/02/11","目標設定與個人成長","會員分享：善用 BNI 讓事業成長",false],
+  ["2027/02/18","目標設定與個人成長","會員分享：善用 BNI 讓事業成長",false],
+  ["2027/02/25","分會工具與系統","各職位的職責與重要性（適合下會期交接前）",false],
+  ["2027/03/04","待確認","",false],
+  ["2027/03/11","待確認","",false],
+  ["2027/03/18","待確認","",false],
+  ["2027/03/25","待確認","",false]
+];
+
+/* ============ generic render/filter logic ============ */
+function renderTab(data, catsElId, chipsElId, searchElId){
+  const catsEl = document.getElementById(catsElId);
+  const chipsEl = document.getElementById(chipsElId);
+  const searchEl = document.getElementById(searchElId);
+  let total = 0;
+
+  data.forEach((block, bi) => {
+    total += block.topics.length;
+    const catDiv = document.createElement("div");
+    catDiv.className = "cat-block";
+    catDiv.dataset.cat = bi;
+
+    const title = document.createElement("h3");
+    title.className = "cat-title";
+    title.innerHTML = `${block.cat} <span class="n">${block.topics.length} 個主題</span>`;
+    catDiv.appendChild(title);
+
+    const desc = document.createElement("p");
+    desc.className = "cat-desc";
+    desc.textContent = block.desc;
+    catDiv.appendChild(desc);
+
+    block.topics.forEach(([t, d, dual]) => {
+      const row = document.createElement("div");
+      row.className = "topic";
+      row.dataset.search = (t + " " + d).toLowerCase();
+      row.innerHTML = `
+        <input type="checkbox">
+        <div class="topic-body">
+          <div class="topic-title-row">
+            <p class="topic-title"></p>
+            ${dual ? '<span class="badge-dual">雙用</span>' : ''}
+          </div>
+          <p class="topic-desc"></p>
+        </div>`;
+      row.querySelector(".topic-title").textContent = t;
+      row.querySelector(".topic-desc").textContent = d;
+      row.querySelector("input").addEventListener("change", e => {
+        row.classList.toggle("done", e.target.checked);
+      });
+      catDiv.appendChild(row);
+    });
+
+    catsEl.appendChild(catDiv);
+  });
+
+  // chips
+  const allChip = document.createElement("div");
+  allChip.className = "chip active";
+  allChip.textContent = "全部";
+  allChip.dataset.idx = "all";
+  chipsEl.appendChild(allChip);
+
+  data.forEach((block, bi) => {
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.textContent = block.cat;
+    chip.dataset.idx = bi;
+    chipsEl.appendChild(chip);
+  });
+
+  let activeCat = "all";
+  function applyFilters(){
+    const q = searchEl.value.trim().toLowerCase();
+    catsEl.querySelectorAll(".cat-block").forEach(block => {
+      const bi = block.dataset.cat;
+      const catMatch = activeCat === "all" || activeCat === bi;
+      let anyVisible = false;
+      block.querySelectorAll(".topic").forEach(row => {
+        const textMatch = !q || row.dataset.search.includes(q);
+        const show = catMatch && textMatch;
+        row.classList.toggle("hidden", !show);
+        if(show) anyVisible = true;
+      });
+      block.classList.toggle("hidden", !anyVisible);
+    });
+  }
+
+  chipsEl.addEventListener("click", e => {
+    const chip = e.target.closest(".chip");
+    if(!chip) return;
+    [...chipsEl.children].forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    activeCat = chip.dataset.idx;
+    applyFilters();
+  });
+  searchEl.addEventListener("input", applyFilters);
+
+  return total;
+}
+
+const threeTotal = renderTab(THREE_DATA, "categories-three", "chips-three", "search-three");
+const afterTotal = renderTab(AFTER_DATA, "categories-after", "chips-after", "search-after");
+document.getElementById("three-count-tab").textContent = threeTotal + " 個";
+document.getElementById("after-count-tab").textContent = afterTotal + " 個";
+
+/* ============ tabs ============ */
+const PANEL_ID_BY_TAB = { three: "panel-three", after: "panel-after", cases: "panel-cases" };
+const tabbar = document.getElementById("tabbar");
+tabbar.addEventListener("click", e => {
+  const tab = e.target.closest(".tab");
+  if(!tab) return;
+  [...tabbar.children].forEach(t => t.classList.remove("active"));
+  tab.classList.add("active");
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById(PANEL_ID_BY_TAB[tab.dataset.tab]).classList.add("active");
+  if(tab.dataset.tab === "cases") loadCases();
+});
+
+/* ============ 案例素材庫 ============ */
+const BIG_AMOUNT_THRESHOLD = 100000;
+let allCases = [];
+let activeCaseFilters = new Set();
+let casesLoaded = false;
+
+function formatAmount(n){
+  return "NT$ " + Number(n || 0).toLocaleString("zh-Hant-TW");
+}
+function formatDate(iso){
+  if(!iso) return "時間未填";
+  try{
+    const d = new Date(iso);
+    if(isNaN(d.getTime())) return "時間未填";
+    return d.toLocaleDateString("zh-Hant-TW", { year:"numeric", month:"2-digit", day:"2-digit" });
+  }catch(e){ return "時間未填"; }
+}
+function typeLabel(r){
+  return r.referralType === "recurring" ? "週期性固定引薦" : "單次引薦";
+}
+function sourceLabel(r){
+  return r.source === "internal" ? "內部引薦" : "外部引薦";
+}
+
+function renderCases(){
+  const listEl = document.getElementById("cases-list");
+  const countEl = document.getElementById("case-count");
+  const q = document.getElementById("search-cases").value.trim().toLowerCase();
+
+  const filtered = allCases.filter(r => {
+    if(activeCaseFilters.has("internal") && r.source !== "internal") return false;
+    if(activeCaseFilters.has("external") && r.source !== "external") return false;
+    if(activeCaseFilters.has("recurring") && r.referralType !== "recurring") return false;
+    if(activeCaseFilters.has("oneoff") && r.referralType !== "oneoff") return false;
+    if(activeCaseFilters.has("big") && !(Number(r.amount) > BIG_AMOUNT_THRESHOLD)) return false;
+    if(q){
+      const hay = (r.referrer + " " + r.recipient + " " + (r.note||"")).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b) => (b.createdAt ? new Date(b.createdAt).getTime() : -1) - (a.createdAt ? new Date(a.createdAt).getTime() : -1));
+
+  countEl.textContent = `共 ${allCases.length} 筆案例，符合條件 ${filtered.length} 筆`;
+
+  if(filtered.length === 0){
+    listEl.innerHTML = `<div class="case-empty">${
+      allCases.length === 0
+        ? "目前還沒有案例紀錄，點右上角「＋ 填寫新案例」新增第一筆吧。"
+        : "沒有符合篩選條件的案例，試試調整篩選或搜尋關鍵字。"
+    }</div>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(r => `
+    <div class="case-card">
+      <div class="case-top">
+        <div class="case-parties">${escapeHtml(r.referrer)}<span class="arrow">→</span>${escapeHtml(r.recipient)}</div>
+        <div class="case-amount">${formatAmount(r.amount)}</div>
+      </div>
+      <div class="case-tags">
+        <span class="case-tag">${sourceLabel(r)}</span>
+        <span class="case-tag">${typeLabel(r)}</span>
+        ${Number(r.amount) > BIG_AMOUNT_THRESHOLD ? '<span class="case-tag big">大額引薦</span>' : ''}
+      </div>
+      ${r.note ? `<p class="case-note">${escapeHtml(r.note)}</p>` : ''}
+      <div class="case-meta">填寫於 ${formatDate(r.createdAt)}</div>
+    </div>
+  `).join("");
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[c]));
+}
+
+async function loadCases(){
+  if(casesLoaded) return;
+  const listEl = document.getElementById("cases-list");
+  listEl.innerHTML = `<div class="case-empty">載入中…</div>`;
+  try{
+    const res = await fetch("/api/referrals");
+    if(!res.ok) throw new Error("讀取失敗");
+    allCases = await res.json();
+    casesLoaded = true;
+    document.getElementById("cases-count-tab").textContent = allCases.length + " 筆";
+    renderCases();
+  }catch(err){
+    listEl.innerHTML = `<div class="case-empty">案例資料載入失敗，請重新整理頁面再試一次。</div>`;
+  }
+}
+
+document.getElementById("chips-cases").addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if(!chip) return;
+  const key = chip.dataset.filter;
+  if(activeCaseFilters.has(key)){
+    activeCaseFilters.delete(key);
+    chip.classList.remove("active");
+  }else{
+    activeCaseFilters.add(key);
+    chip.classList.add("active");
+  }
+  renderCases();
+});
+document.getElementById("search-cases").addEventListener("input", renderCases);
+
+/* ============ schedule table ============ */
+const calBody = document.getElementById("cal-body");
+SCHEDULE.forEach(([date, cat, note, special]) => {
+  const tr = document.createElement("tr");
+  if(special) tr.className = "special";
+  tr.innerHTML = `<td class="m">${date}</td><td class="cat">${cat}</td><td class="note">${note}</td>`;
+  calBody.appendChild(tr);
+});
+</script>
+</body>
+</html>
