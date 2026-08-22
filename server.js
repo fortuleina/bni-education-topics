@@ -156,14 +156,17 @@ app.get("/api/referrals", async (req, res) => {
 app.post("/api/referrals", async (req, res) => {
   const { referrer, recipient, amount, referralType, source, note, submitter } = req.body || {};
 
-  if (!referrer || !MEMBER_SET.has(String(referrer).trim())) {
-    return res.status(400).json({ error: "請從名單選擇「誰給的引薦」" });
+  // 誰給的引薦／熱心填寫者：可以是名單裡的會員，也可以是網頁上選「其他」自行輸入的名字
+  // （例如來賓、非會員協助填寫），所以這裡只檢查有沒有填，不檢查是否在會員名單裡。
+  if (!referrer || !String(referrer).trim()) {
+    return res.status(400).json({ error: "請填寫「誰給的引薦」" });
   }
-  if (!recipient || !String(recipient).trim()) {
-    return res.status(400).json({ error: "請填寫「引薦給誰」" });
+  // 引薦給誰：一定要是會員名單裡的人。
+  if (!recipient || !MEMBER_SET.has(String(recipient).trim())) {
+    return res.status(400).json({ error: "請從名單選擇「引薦給誰」" });
   }
-  if (!submitter || !MEMBER_SET.has(String(submitter).trim())) {
-    return res.status(400).json({ error: "請從名單選擇「熱心填寫者」" });
+  if (!submitter || !String(submitter).trim()) {
+    return res.status(400).json({ error: "請填寫「熱心填寫者」" });
   }
   const amountNum = Number(amount);
   if (!Number.isFinite(amountNum) || amountNum < 0) {

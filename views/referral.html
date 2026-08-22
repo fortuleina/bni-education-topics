@@ -65,6 +65,24 @@
   .field-hint{font-size:12px; color:var(--ink-faint); margin-top:6px;}
   .other-input{margin-top:10px; display:none;}
   .other-input.show{display:block;}
+
+  .combo{position:relative;}
+  .combo.invalid input.combo-input{border-color:var(--bad);}
+  .combo.manual input.combo-input{border-color:var(--accent); background:var(--accent-soft);}
+  .combo-list{
+    position:absolute; left:0; right:0; top:calc(100% + 6px);
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    box-shadow:var(--shadow); max-height:240px; overflow-y:auto;
+    z-index:20; display:none; padding:6px;
+  }
+  .combo-list.show{display:block;}
+  .combo-option{
+    padding:9px 10px; border-radius:7px; font-size:14px; cursor:pointer; color:var(--ink);
+  }
+  .combo-option:hover, .combo-option.active{background:var(--accent-soft); color:var(--accent);}
+  .combo-option-free{color:var(--ink-soft); font-style:italic;}
+  .combo-option-empty{padding:9px 10px; font-size:13px; color:var(--ink-faint); cursor:default;}
+  .combo-hint{font-size:12px; color:var(--ink-faint); margin-top:6px;}
   .radio-group{display:flex; gap:10px; flex-wrap:wrap;}
   .radio-opt{
     flex:1; min-width:130px;
@@ -119,17 +137,20 @@
 
   <form id="referral-form">
     <div class="field">
-      <label class="field-label" for="referrer">誰給的引薦？</label>
-      <select id="referrer" name="referrer" required>
-        <option value="" selected disabled>請選擇會員姓名</option>
-      </select>
+      <label class="field-label" for="referrer-input">誰給的引薦？</label>
+      <div class="combo">
+        <input type="text" id="referrer-input" class="combo-input" placeholder="輸入姓名搜尋…" autocomplete="off">
+        <input type="hidden" id="referrer" name="referrer">
+        <div class="combo-list" id="referrer-list" role="listbox"></div>
+      </div>
     </div>
     <div class="field">
-      <label class="field-label" for="recipient">引薦給誰？</label>
-      <select id="recipient" name="recipient" required>
-        <option value="" selected disabled>請選擇會員姓名</option>
-      </select>
-      <input type="text" id="recipient-other" class="other-input" placeholder="請輸入姓名或公司名稱">
+      <label class="field-label" for="recipient-input">引薦給誰？</label>
+      <div class="combo">
+        <input type="text" id="recipient-input" class="combo-input" placeholder="輸入姓名搜尋…" autocomplete="off">
+        <input type="hidden" id="recipient" name="recipient">
+        <div class="combo-list" id="recipient-list" role="listbox"></div>
+      </div>
     </div>
     <div class="field">
       <label class="field-label" for="amount">金額多少？</label>
@@ -157,10 +178,12 @@
       <textarea id="note" name="note" placeholder="簡單寫幾句背景或亮點，之後上台分享可以直接用"></textarea>
     </div>
     <div class="field">
-      <label class="field-label" for="submitter">熱心填寫者</label>
-      <select id="submitter" name="submitter" required>
-        <option value="" selected disabled>請選擇你自己的姓名</option>
-      </select>
+      <label class="field-label" for="submitter-input">熱心填寫者</label>
+      <div class="combo">
+        <input type="text" id="submitter-input" class="combo-input" placeholder="輸入姓名搜尋…" autocomplete="off">
+        <input type="hidden" id="submitter" name="submitter">
+        <div class="combo-list" id="submitter-list" role="listbox"></div>
+      </div>
       <p class="field-hint">讓我們知道這筆引薦是誰幫忙記錄的，不會顯示在公開的案例素材庫上。</p>
     </div>
 
@@ -183,35 +206,206 @@
   // 依姓氏筆畫排序（跟後端 server.js 的 MEMBERS 順序一致）
   const MEMBERS = ["丁慶儒","王世品","王孟哲","王懿德","田慶堂","江柏陞","余博軒","吳書林","吳旌緯","呂孟翰","呂炘豪","李坊祥","李恩誠","李曉玫","周子嵐","周順智","周榆璇","周曜贊","林文裕","林宏一","林佩佩","林宗翰","林定豪","林品彤","林思裴","林昱璋","林家蔚","林詠淇","林駿維","侯冠瑋","洪敏智","洪翊嘉","翁煜宸","康清智","張婉靖","張博凱","張綺耘","曹原彰","梁虔駖","莊子樂","許國祥","連育正","郭玉琴","陳沛慈","陳依凡","陳宜信","陳芷綺","陳姵文","陳建安","陳春長","陳朝銘","陳睿民","陳薏如","彭澤偉","曾紹恩","曾惠君","游姿菱 Yu Sleeping Beauty","馮威憲","黃同慶","黃勇嘉","黃建華","黃莞芹","黃瑀珍","黃鈺淳","黃麗娟","黃麟翔","楊和宥","楊嘉慧","葉奕廷","葉蕥霈","雷文鳳","廖婕詠","廖愷伶","廖筱蘭","熊庭逸","劉美葳","劉宸緯","劉雍致","潘建勳","潘祥鈞","蔡伊鎔","蔡昕宏","蔡瑋倫","盧冠臻","賴丰培","戴劭哲","謝宥騏","鍾坤宏","鍾承翰","蘇姮勻"];
 
-  function fillMemberOptions(selectEl, { includeOther } = {}){
-    MEMBERS.forEach(name => {
-      const opt = document.createElement("option");
-      opt.value = name;
-      opt.textContent = name;
-      selectEl.appendChild(opt);
-    });
-    if(includeOther){
-      const opt = document.createElement("option");
-      opt.value = "__other__";
-      opt.textContent = "其他（不在名單中／非會員）";
-      selectEl.appendChild(opt);
+  // 可搜尋下拉選單（combobox）：輸入文字即時過濾名單，用滑鼠點選或方向鍵＋Enter選取。
+  // 預設一定要選到名單裡的人，沒選到有效的人就視為未填。
+  // allowOther=true（誰給的引薦／熱心填寫者）：清單最後會有「其他（不在名單中／非會員）」，
+  // 選了之後這個欄位會切換成自由輸入框，可以打名單外的名字（例如來賓、非會員協助填寫）；
+  // 也可以再點一次「改選名單中的會員」切回搜尋模式。
+  // allowOther=false（引薦給誰）：只能選名單裡的會員，沒有自由輸入的選項。
+  const OTHER_VALUE = "__other__";
+  const BACK_VALUE = "__back__";
+  const OTHER_LABEL = "其他（不在名單中／非會員）";
+
+  function setupCombobox({ wrapperEl, inputEl, hiddenEl, listEl, allowOther }){
+    const initialPlaceholder = inputEl.placeholder;
+    let activeIndex = -1;
+    let manualMode = false;
+
+    function currentOptions(query){
+      const q = query.trim().toLowerCase();
+      if(!q) return MEMBERS.slice(0, 30);
+      return MEMBERS.filter(name => name.toLowerCase().includes(q)).slice(0, 30);
     }
+
+    function renderMemberList(query){
+      const opts = currentOptions(query);
+      activeIndex = -1;
+      listEl.innerHTML = "";
+
+      opts.forEach(name => {
+        const item = document.createElement("div");
+        item.className = "combo-option";
+        item.setAttribute("role", "option");
+        item.dataset.value = name;
+        item.textContent = name;
+        item.addEventListener("mousedown", e => { e.preventDefault(); commit(name); });
+        listEl.appendChild(item);
+      });
+
+      if(!opts.length && !allowOther){
+        const empty = document.createElement("div");
+        empty.className = "combo-option-empty";
+        empty.textContent = "沒有符合的名字";
+        listEl.appendChild(empty);
+      }
+
+      if(allowOther){
+        const item = document.createElement("div");
+        item.className = "combo-option combo-option-free";
+        item.dataset.value = OTHER_VALUE;
+        item.textContent = OTHER_LABEL;
+        item.addEventListener("mousedown", e => { e.preventDefault(); enterManualMode(); });
+        listEl.appendChild(item);
+      }
+
+      listEl.classList.add("show");
+    }
+
+    function renderManualHint(){
+      listEl.innerHTML = "";
+      activeIndex = -1;
+      const item = document.createElement("div");
+      item.className = "combo-option combo-option-free";
+      item.dataset.value = BACK_VALUE;
+      item.textContent = "◀ 改選名單中的會員";
+      item.addEventListener("mousedown", e => { e.preventDefault(); exitManualMode(); });
+      listEl.appendChild(item);
+      listEl.classList.add("show");
+    }
+
+    function updateActive(){
+      const opts = [...listEl.querySelectorAll(".combo-option")];
+      opts.forEach(o => o.classList.remove("active"));
+      if(opts[activeIndex]){
+        opts[activeIndex].classList.add("active");
+        opts[activeIndex].scrollIntoView({ block: "nearest" });
+      }
+    }
+
+    function commit(value){
+      inputEl.value = value;
+      hiddenEl.value = value;
+      wrapperEl.classList.remove("invalid");
+      listEl.classList.remove("show");
+    }
+
+    function enterManualMode(){
+      manualMode = true;
+      wrapperEl.classList.add("manual");
+      wrapperEl.classList.remove("invalid");
+      inputEl.value = "";
+      hiddenEl.value = "";
+      inputEl.placeholder = "請輸入姓名";
+      // 選「其他」時 mousedown 用了 preventDefault 保住 input 的 focus，
+      // 所以這裡不能只靠等一個新的 focus 事件來顯示提示，要直接畫出來。
+      renderManualHint();
+      inputEl.focus();
+    }
+
+    function exitManualMode(){
+      manualMode = false;
+      wrapperEl.classList.remove("manual", "invalid");
+      inputEl.value = "";
+      hiddenEl.value = "";
+      inputEl.placeholder = initialPlaceholder;
+      renderMemberList("");
+      inputEl.focus();
+    }
+
+    inputEl.addEventListener("focus", () => {
+      if(manualMode) renderManualHint();
+      else renderMemberList(inputEl.value);
+    });
+    inputEl.addEventListener("input", () => {
+      if(manualMode){
+        hiddenEl.value = inputEl.value.trim();
+        return;
+      }
+      hiddenEl.value = "";
+      renderMemberList(inputEl.value);
+    });
+    inputEl.addEventListener("keydown", e => {
+      if(manualMode){
+        if(e.key === "Enter"){
+          e.preventDefault();
+          commit(inputEl.value.trim());
+        }else if(e.key === "Escape"){
+          listEl.classList.remove("show");
+        }
+        return;
+      }
+      const opts = [...listEl.querySelectorAll(".combo-option")];
+      if(e.key === "ArrowDown"){
+        e.preventDefault();
+        if(!listEl.classList.contains("show")) return renderMemberList(inputEl.value);
+        activeIndex = Math.min(activeIndex + 1, opts.length - 1);
+        updateActive();
+      }else if(e.key === "ArrowUp"){
+        e.preventDefault();
+        activeIndex = Math.max(activeIndex - 1, 0);
+        updateActive();
+      }else if(e.key === "Enter"){
+        if(activeIndex >= 0 && opts[activeIndex]){
+          e.preventDefault();
+          const val = opts[activeIndex].dataset.value;
+          if(val === OTHER_VALUE) enterManualMode();
+          else commit(val);
+        }
+      }else if(e.key === "Escape"){
+        listEl.classList.remove("show");
+      }
+    });
+    inputEl.addEventListener("blur", () => {
+      setTimeout(() => {
+        listEl.classList.remove("show");
+        const trimmed = inputEl.value.trim();
+        if(manualMode){
+          hiddenEl.value = trimmed;
+          wrapperEl.classList.toggle("invalid", !trimmed);
+          return;
+        }
+        if(trimmed && MEMBERS.includes(trimmed)){
+          hiddenEl.value = trimmed;
+          wrapperEl.classList.remove("invalid");
+        }else{
+          hiddenEl.value = "";
+          wrapperEl.classList.toggle("invalid", !!trimmed);
+        }
+      }, 120);
+    });
+
+    return {
+      reset(){
+        manualMode = false;
+        wrapperEl.classList.remove("manual", "invalid");
+        inputEl.value = "";
+        hiddenEl.value = "";
+        inputEl.placeholder = initialPlaceholder;
+        listEl.classList.remove("show");
+      }
+    };
   }
 
-  const referrerSelect = document.getElementById("referrer");
-  const recipientSelect = document.getElementById("recipient");
-  const submitterSelect = document.getElementById("submitter");
-  const recipientOtherInput = document.getElementById("recipient-other");
-
-  fillMemberOptions(referrerSelect);
-  fillMemberOptions(recipientSelect, { includeOther: true });
-  fillMemberOptions(submitterSelect);
-
-  recipientSelect.addEventListener("change", () => {
-    const isOther = recipientSelect.value === "__other__";
-    recipientOtherInput.classList.toggle("show", isOther);
-    recipientOtherInput.required = isOther;
-    if(!isOther) recipientOtherInput.value = "";
+  const referrerCombo = setupCombobox({
+    wrapperEl: document.getElementById("referrer-input").closest(".combo"),
+    inputEl: document.getElementById("referrer-input"),
+    hiddenEl: document.getElementById("referrer"),
+    listEl: document.getElementById("referrer-list"),
+    allowOther: true,
+  });
+  const recipientCombo = setupCombobox({
+    wrapperEl: document.getElementById("recipient-input").closest(".combo"),
+    inputEl: document.getElementById("recipient-input"),
+    hiddenEl: document.getElementById("recipient"),
+    listEl: document.getElementById("recipient-list"),
+    allowOther: false,
+  });
+  const submitterCombo = setupCombobox({
+    wrapperEl: document.getElementById("submitter-input").closest(".combo"),
+    inputEl: document.getElementById("submitter-input"),
+    hiddenEl: document.getElementById("submitter"),
+    listEl: document.getElementById("submitter-list"),
+    allowOther: true,
   });
 
   const form = document.getElementById("referral-form");
@@ -239,17 +433,28 @@
     e.preventDefault();
     msgEl.className = "msg";
 
-    const referrer = referrerSelect.value;
-    const recipientRaw = recipientSelect.value;
-    const recipient = recipientRaw === "__other__" ? recipientOtherInput.value.trim() : recipientRaw;
-    const submitter = submitterSelect.value;
+    const referrer = document.getElementById("referrer").value;
+    const recipient = document.getElementById("recipient").value;
+    const submitter = document.getElementById("submitter").value;
     const amount = document.getElementById("amount").value;
     const referralType = form.querySelector('input[name="referralType"]:checked');
     const source = form.querySelector('input[name="source"]:checked');
     const note = document.getElementById("note").value.trim();
 
-    if(!referrer || !recipient || !submitter || amount === "" || !referralType || !source){
-      showMsg("請把必填欄位都填寫完整（引薦類型、內部／外部、熱心填寫者都要選一個）。", "error");
+    if(!referrer){
+      showMsg("請填寫「誰給的引薦」（從名單選，或選「其他」自行輸入）。", "error");
+      return;
+    }
+    if(!recipient){
+      showMsg("請從名單選擇「引薦給誰」。", "error");
+      return;
+    }
+    if(!submitter){
+      showMsg("請填寫「熱心填寫者」（從名單選，或選「其他」自行輸入）。", "error");
+      return;
+    }
+    if(amount === "" || !referralType || !source){
+      showMsg("請把必填欄位都填寫完整（引薦類型、內部／外部都要選一個）。", "error");
       return;
     }
 
@@ -285,8 +490,9 @@
   document.getElementById("add-another").addEventListener("click", () => {
     form.reset();
     document.querySelectorAll(".radio-opt.checked").forEach(el => el.classList.remove("checked"));
-    recipientOtherInput.classList.remove("show");
-    recipientOtherInput.required = false;
+    referrerCombo.reset();
+    recipientCombo.reset();
+    submitterCombo.reset();
     form.style.display = "block";
     successPanel.classList.remove("show");
     msgEl.className = "msg";
