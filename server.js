@@ -39,7 +39,8 @@ const VALID_SOURCES = Object.keys(SOURCE_CODE_TO_LABEL);
 
 // 分會會員名單：「誰給的引薦」「熱心填寫者」只能從這份名單選，避免同一個人被打成不同寫法，
 // 資料清洗時比對困難。「引薦給誰」允許名單外的名字（外部引薦對象常常不是會員）。
-const MEMBERS = ["王世品", "賴丰培", "蔡伊鎔", "林佩佩", "陳依凡", "侯冠瑋", "盧冠臻", "戴劭哲", "黃勇嘉", "張博凱", "余博軒", "曹原彰", "黃同慶", "楊和宥", "林品彤", "楊嘉慧", "許國祥", "李坊祥", "鍾坤宏", "葉奕廷", "蘇姮勻", "陳姵文", "游姿菱 Yu Sleeping Beauty", "馮威憲", "張婉靖", "廖婕詠", "周子嵐", "莊子樂", "王孟哲", "呂孟翰", "林宏一", "林宗翰", "林定豪", "陳宜信", "謝宥騏", "林家蔚", "劉宸緯", "熊庭逸", "潘建勳", "陳建安", "黃建華", "林思裴", "李恩誠", "曾惠君", "廖愷伶", "丁慶儒", "田慶堂", "王懿德", "鍾承翰", "洪敏智", "林文裕", "雷文鳳", "吳旌緯", "蔡昕宏", "陳春長", "林昱璋", "李曉玫", "周曜贊", "吳書林", "陳朝銘", "江柏陞", "周榆璇", "陳沛慈", "康清智", "彭澤偉", "呂炘豪", "翁煜宸", "郭玉琴", "黃瑀珍", "蔡瑋倫", "陳睿民", "潘祥鈞", "廖筱蘭", "曾紹恩", "張綺耘", "劉美葳", "洪翊嘉", "連育正", "陳芷綺", "黃莞芹", "葉蕥霈", "陳薏如", "梁虔駖", "林詠淇", "黃鈺淳", "劉雍致", "周順智", "林駿維", "黃麗娟", "黃麟翔"];
+// 依姓氏筆畫排序（跟前端 views/referral.html 的 MEMBERS 順序一致）
+const MEMBERS = ["丁慶儒","王世品","王孟哲","王懿德","田慶堂","江柏陞","余博軒","吳書林","吳旌緯","呂孟翰","呂炘豪","李坊祥","李恩誠","李曉玫","周子嵐","周順智","周榆璇","周曜贊","林文裕","林宏一","林佩佩","林宗翰","林定豪","林品彤","林思裴","林昱璋","林家蔚","林詠淇","林駿維","侯冠瑋","洪敏智","洪翊嘉","翁煜宸","康清智","張婉靖","張博凱","張綺耘","曹原彰","梁虔駖","莊子樂","許國祥","連育正","郭玉琴","陳沛慈","陳依凡","陳宜信","陳芷綺","陳姵文","陳建安","陳春長","陳朝銘","陳睿民","陳薏如","彭澤偉","曾紹恩","曾惠君","游姿菱 Yu Sleeping Beauty","馮威憲","黃同慶","黃勇嘉","黃建華","黃莞芹","黃瑀珍","黃鈺淳","黃麗娟","黃麟翔","楊和宥","楊嘉慧","葉奕廷","葉蕥霈","雷文鳳","廖婕詠","廖愷伶","廖筱蘭","熊庭逸","劉美葳","劉宸緯","劉雍致","潘建勳","潘祥鈞","蔡伊鎔","蔡昕宏","蔡瑋倫","盧冠臻","賴丰培","戴劭哲","謝宥騏","鍾坤宏","鍾承翰","蘇姮勻"];
 const MEMBER_SET = new Set(MEMBERS);
 
 async function readAll() {
@@ -92,13 +93,41 @@ async function appendRecord(record) {
     submitter: record.submitter,
     secret: SHEETS_WEBAPP_SECRET,
   };
-  const res = await fetch(SHEETS_WEBAPP_URL, {
+
+  // Apps Script 的 /exec 網址在執行完 doPost 後，通常會回一個 302，
+  // 轉址到 script.googleusercontent.com 底下一組一次性網址去取得執行結果。
+  // Node 內建 fetch 對「非 GET 請求收到 302」的自動轉址（會把方法改成 GET
+  // 並丟掉 body）在某些情況下會導致轉址失敗，這裡改成自己接手轉址，
+  // 行為更穩定、也比較好排查問題。
+  let res = await fetch(SHEETS_WEBAPP_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+    redirect: "manual",
   });
-  const data = await res.json().catch(() => ({}));
+
+  if (res.status >= 300 && res.status < 400) {
+    const location = res.headers.get("location");
+    if (!location) {
+      throw new Error(`寫入 Google 試算表失敗（收到轉址回應但沒有 Location，HTTP ${res.status}）`);
+    }
+    res = await fetch(location, { method: "GET" });
+  }
+
+  const rawText = await res.text();
+  let data = {};
+  try {
+    data = JSON.parse(rawText);
+  } catch (_) {
+    // 回應不是 JSON，通常代表 Google 那邊回了一個錯誤頁面（例如網址錯誤、
+    // 部署權限設定不對），下面直接把原始內容印進 log 方便排查。
+  }
+
   if (!res.ok || data.error) {
+    console.error(
+      "寫入 Google 試算表失敗，原始回應狀態：", res.status,
+      "，前 500 字內容：", rawText.slice(0, 500)
+    );
     throw new Error(data.error || `寫入 Google 試算表失敗（HTTP ${res.status}）`);
   }
   return data;
