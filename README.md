@@ -9,7 +9,7 @@
 ```
 server.js                   Express 伺服器，所有路由跟 API 都在這裡
 package.json                套件設定
-views/index.html            主題庫首頁（三分鐘培訓／會後培訓／案例素材庫）
+views/index.html            主題庫首頁（三分鐘培訓／會後培訓／案例素材庫／會員照片下載）
 views/referral.html         引薦紀錄填寫表單頁
 google-apps-script/Code.gs  貼到 Google 試算表 Apps Script 的橋接程式碼
 ```
@@ -45,14 +45,38 @@ google-apps-script/Code.gs  貼到 Google 試算表 Apps Script 的橋接程式�
 這支 API 本身還是讀得到這個欄位（只是網頁畫面沒有顯示出來）。如果之後想要更嚴格地保護
 這個欄位，需要另外加登入或密碼保護機制，目前這版本還沒做這一層。
 
+## 「會員照片下載」頁籤：設定會員照片服務
+
+這個頁籤串接朋友做的「BNI 簡報整合系統」API（`https://bni-ppt-combine.onrender.com`），
+讀取會員清單、下載大頭照打包成 zip，網站本身**不會**另外存一份照片，每次都是即時去跟
+對方的服務要資料。這個頁籤是完全公開的，不需要登入。
+
+1. 跟你朋友要一組屬於你自己的 `X-API-Key`。
+2. Render 後台 → 你的 Web Service → **Environment** 加一個環境變數：
+   - `MEMBER_API_KEY` = 朋友給你的 API 金鑰
+3.（通常不用改）`MEMBER_API_BASE` 預設是 `https://bni-ppt-combine.onrender.com/api/v1`，
+   如果之後朋友的服務網址換了，可以另外加這個環境變數覆蓋掉。
+
+如果還沒設定 `MEMBER_API_KEY`，網站其他部分都正常，只有「會員照片下載」頁籤會顯示
+讀取失敗的訊息，不會影響三分鐘培訓／會後培訓／案例素材庫。
+
+下載照片的時候，後端會**一張一張依序**跟對方的服務要，不會同時打好幾支請求——因為朋友
+的服務是單人維護、單執行緒，同時打太多請求容易把它打掛。如果選的人數比較多，打包會
+需要一點時間，請耐心等待；如果某幾位會員的照片抓不到（例如還沒上傳照片，或對方服務
+剛好在冷啟動），zip 檔裡會多一個「下載失敗名單.txt」列出是誰，其他人的照片還是會正常
+下載，過一陣子可以再單獨重新下載失敗的那幾位。
+
 ## 第二步：本機測試
 
 ```bash
 npm install
-SHEETS_WEBAPP_URL="你的 Apps Script 網址" SHEETS_WEBAPP_SECRET="你設的 WRITE_SECRET" npm start
+SHEETS_WEBAPP_URL="你的 Apps Script 網址" SHEETS_WEBAPP_SECRET="你設的 WRITE_SECRET" \
+MEMBER_API_KEY="朋友給你的 API 金鑰" \
+npm start
 ```
 
 啟動後打開 http://localhost:3000 即可，案例素材庫會直接讀寫你的 Google 試算表。
+`MEMBER_API_KEY` 沒設也可以啟動，只是「會員照片下載」頁籤會顯示讀取失敗。
 
 ## 第三步：部署到 Render（Web Service）
 
@@ -62,9 +86,11 @@ SHEETS_WEBAPP_URL="你的 Apps Script 網址" SHEETS_WEBAPP_SECRET="你設的 WR
 1. Render 後台 → **New** → **Web Service**，選這個 GitHub repo（`fortuleina/bni-education-topics`）。
 2. **Build Command**：`npm install`
 3. **Start Command**：`npm start`（或 `node server.js`）
-4. **Environment Variables** 加兩個：
+4. **Environment Variables** 加：
    - `SHEETS_WEBAPP_URL` = 上面 Apps Script 部署拿到的網址
    - `SHEETS_WEBAPP_SECRET` = 跟 Apps Script 指令碼屬性裡 `WRITE_SECRET` 一樣的值
+   - `MEMBER_API_KEY` = 朋友給你的會員照片服務 API 金鑰（沒有的話「會員照片下載」頁籤會顯示
+     讀取失敗，其他頁籤不受影響，可以之後再補設定）
 5. 資料存在 Google 試算表，**不需要**額外掛 persistent disk。
 6. 先用 Render 自動配的暫時網址（例如 `bni-education-topics-xxxx.onrender.com`）完整測試過一輪：
    - 首頁三個頁籤都能切換

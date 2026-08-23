@@ -10,7 +10,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "exceljs": "^4.4.0"
+    "archiver": "^7.0.1",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2"
   }
 }

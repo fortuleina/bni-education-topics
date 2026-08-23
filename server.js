@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const ExcelJS = require("exceljs");
+const archiver = require("archiver");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,38 @@ const VALID_SOURCES = Object.keys(SOURCE_CODE_TO_LABEL);
 // 分會會員名單：「誰給的引薦」「熱心填寫者」只能從這份名單選，避免同一個人被打成不同寫法，
 // 資料清洗時比對困難。「引薦給誰」允許名單外的名字（外部引薦對象常常不是會員）。
 // 依姓氏筆畫排序（跟前端 views/referral.html 的 MEMBERS 順序一致）
+// 會員照片下載頁籤：串接朋友做的「BNI 簡報整合系統」API，取得會員大頭照打包成 zip。
+// 這支 API 是單一朋友維護、單執行緒、容易冷啟動，所以：
+// 1. timeout 抓寬一點（90 秒）
+// 2. 批次下載時一定要「逐一」照順序打，絕對不要同時平行打好幾支請求，避免把對方服務打掛
+const MEMBER_API_BASE = (process.env.MEMBER_API_BASE || "https://bni-ppt-combine.onrender.com/api/v1").replace(/\/+$/, "");
+const MEMBER_API_KEY = process.env.MEMBER_API_KEY || "";
+
+if (!MEMBER_API_KEY) {
+  console.warn(
+    "⚠️  尚未設定 MEMBER_API_KEY 環境變數，「會員照片下載」頁籤將無法使用。"
+  );
+}
+
+async function memberApiFetch(pathAndQuery, options = {}) {
+  if (!MEMBER_API_KEY) {
+    const err = new Error("尚未設定 MEMBER_API_KEY，無法連線到會員照片服務");
+    err.code = "NO_API_KEY";
+    throw err;
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 90000);
+  try {
+    return await fetch(`${MEMBER_API_BASE}${pathAndQuery}`, {
+      ...options,
+      headers: { "X-API-Key": MEMBER_API_KEY, ...(options.headers || {}) },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 const MEMBERS = ["丁慶儒","王世品","王孟哲","王懿德","田慶堂","江柏陞","余博軒","吳書林","吳旌緯","呂孟翰","呂炘豪","李坊祥","李恩誠","李曉玫","周子嵐","周順智","周榆璇","周曜贊","林文裕","林宏一","林佩佩","林宗翰","林定豪","林品彤","林思裴","林昱璋","林家蔚","林詠淇","林駿維","侯冠瑋","洪敏智","洪翊嘉","翁煜宸","康清智","張婉靖","張博凱","張綺耘","曹原彰","梁虔駖","莊子樂","許國祥","連育正","郭玉琴","陳沛慈","陳依凡","陳宜信","陳芷綺","陳姵文","陳建安","陳春長","陳朝銘","陳睿民","陳薏如","彭澤偉","曾紹恩","曾惠君","游姿菱 Yu Sleeping Beauty","馮威憲","黃同慶","黃勇嘉","黃建華","黃莞芹","黃瑀珍","黃鈺淳","黃麗娟","黃麟翔","楊和宥","楊嘉慧","葉奕廷","葉蕥霈","雷文鳳","廖婕詠","廖愷伶","廖筱蘭","熊庭逸","劉美葳","劉宸緯","劉雍致","潘建勳","潘祥鈞","蔡伊鎔","蔡昕宏","蔡瑋倫","盧冠臻","賴丰培","戴劭哲","謝宥騏","鍾坤宏","鍾承翰","蘇姮勻"];
 const MEMBER_SET = new Set(MEMBERS);
 
@@ -241,6 +274,124 @@ app.get("/api/referrals/export.xlsx", async (req, res) => {
   res.setHeader("Content-Disposition", 'attachment; filename="referrals.xlsx"');
   await wb.xlsx.write(res);
   res.end();
+});
+
+/* ============ 會員照片下載 ============ */
+
+app.get("/api/members", async (req, res) => {
+  try {
+    const apiRes = await memberApiFetch("/members");
+    if (!apiRes.ok) {
+      throw new Error(`讀取會員名單失敗（HTTP ${apiRes.status}）`);
+    }
+    const data = await apiRes.json();
+    const members = Array.isArray(data.members) ? data.members : [];
+    // 只把畫面需要的欄位傳給前端，API金鑰留在伺服器這邊，不會流出去。
+    res.json(
+      members
+        .filter((m) => m && m.id)
+        .map((m) => ({
+          id: m.id,
+          name: m.name || m.id,
+          industry: m.industry || "",
+        }))
+    );
+  } catch (err) {
+    console.error("讀取會員照片名單失敗：", err);
+    const msg =
+      err.code === "NO_API_KEY"
+        ? "尚未設定會員照片服務的 API 金鑰，請聯絡管理員設定 MEMBER_API_KEY 環境變數。"
+        : "讀取會員名單失敗，請稍後再試（對方服務可能正在冷啟動，可以再試一次）。";
+    res.status(502).json({ error: msg });
+  }
+});
+
+app.post("/api/members/photos.zip", async (req, res) => {
+  const idsRaw = Array.isArray(req.body?.ids) ? req.body.ids : [];
+  const ids = [...new Set(idsRaw.filter((id) => typeof id === "string" && id.trim()))];
+
+  if (!ids.length) {
+    return res.status(400).json({ error: "請至少選擇一位會員" });
+  }
+  if (!MEMBER_API_KEY) {
+    return res.status(503).json({
+      error: "尚未設定會員照片服務的 API 金鑰，請聯絡管理員設定 MEMBER_API_KEY 環境變數。",
+    });
+  }
+
+  res.setHeader("Content-Type", "application/zip");
+  res.setHeader("Content-Disposition", 'attachment; filename="member-photos.zip"');
+
+  const archive = archiver("zip", { zlib: { level: 9 } });
+  let archiveFailed = false;
+  archive.on("warning", (err) => console.warn("打包照片 zip 警告：", err));
+  archive.on("error", (err) => {
+    archiveFailed = true;
+    console.error("打包照片 zip 時發生錯誤：", err);
+    if (!res.headersSent) res.status(500);
+    res.end();
+  });
+  archive.pipe(res);
+
+  const usedNames = new Set();
+  const failed = [];
+
+  // 對方 API 單執行緒、容易冷啟動，這裡刻意用 for...of 逐一 await，
+  // 不要用 Promise.all 之類的方式同時平行打多支請求。
+  for (const id of ids) {
+    if (archiveFailed) break;
+    try {
+      const photoRes = await memberApiFetch(`/members/${encodeURIComponent(id)}/photo`);
+      if (!photoRes.ok) {
+        failed.push(id);
+        continue;
+      }
+      const buf = Buffer.from(await photoRes.arrayBuffer());
+
+      // 檔名以 API 實際回傳的為準：伺服器端可能會壓縮圖片，副檔名不一定跟原始上傳的一樣。
+      let filename = null;
+      const disposition = photoRes.headers.get("content-disposition") || "";
+      const match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+      if (match) {
+        try {
+          filename = decodeURIComponent(match[1]);
+        } catch (_) {
+          filename = match[1];
+        }
+      }
+      if (!filename) {
+        const contentType = photoRes.headers.get("content-type") || "";
+        const ext = contentType.includes("png") ? "png" : contentType.includes("webp") ? "webp" : "jpg";
+        filename = `${id}.${ext}`;
+      }
+
+      // 避免不同會員的檔名剛好重複而互相覆蓋。
+      let finalName = filename;
+      let n = 2;
+      while (usedNames.has(finalName)) {
+        const dot = filename.lastIndexOf(".");
+        finalName = dot === -1 ? `${filename}-${n}` : `${filename.slice(0, dot)}-${n}${filename.slice(dot)}`;
+        n++;
+      }
+      usedNames.add(finalName);
+
+      archive.append(buf, { name: finalName });
+    } catch (err) {
+      console.error(`下載會員「${id}」照片失敗：`, err);
+      failed.push(id);
+    }
+  }
+
+  if (archiveFailed) return;
+
+  if (failed.length) {
+    archive.append(
+      `以下會員的照片下載失敗，可能是還沒有上傳照片，或對方服務當下沒有回應：\n\n${failed.join("\n")}\n`,
+      { name: "下載失敗名單.txt" }
+    );
+  }
+
+  await archive.finalize();
 });
 
 app.listen(PORT, () => {

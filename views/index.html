@@ -171,6 +171,28 @@
   }
   .case-empty a{color:var(--accent); font-weight:600;}
 
+  /* ===== 會員照片下載 ===== */
+  .case-toolbar .btn{
+    /* 沿用案例素材庫的按鈕樣式，這裡讓 <button> 跟 <a class="btn"> 長得一樣 */
+    font-family:inherit;
+  }
+  .case-toolbar .btn:disabled{
+    opacity:.5; cursor:not-allowed;
+  }
+  .case-toolbar .btn:disabled:hover{border-color:var(--line); color:var(--ink);}
+  .member-row{
+    background:var(--card); border:1px solid var(--line); border-radius:10px;
+    padding:10px 14px; margin-bottom:8px;
+  }
+  .member-row label{
+    display:flex; align-items:center; gap:12px; cursor:pointer; min-width:0;
+  }
+  .member-row input[type=checkbox]{
+    width:16px; height:16px; accent-color:var(--good); flex:none; cursor:pointer;
+  }
+  .member-row .member-name{font-size:14.5px; font-weight:600; white-space:nowrap;}
+  .member-row .member-industry{font-size:13px; color:var(--ink-soft);}
+
   @media print{
     .controls, .tabbar{position:static;}
     .chip{display:none;}
@@ -204,6 +226,7 @@
     <div class="tab active" data-tab="three">三分鐘培訓 <span class="tab-n" id="three-count-tab"></span></div>
     <div class="tab" data-tab="after">會後培訓 <span class="tab-n" id="after-count-tab"></span></div>
     <div class="tab" data-tab="cases">案例素材庫 <span class="tab-n" id="cases-count-tab"></span></div>
+    <div class="tab" data-tab="photos">會員照片下載 <span class="tab-n" id="photos-count-tab"></span></div>
   </div>
 
   <!-- ===== 三分鐘培訓 ===== -->
@@ -253,6 +276,23 @@
       </div>
     </div>
     <div id="cases-list"></div>
+  </div>
+
+  <!-- ===== 會員照片下載 ===== -->
+  <div class="tab-panel" id="panel-photos">
+    <div class="controls">
+      <input class="search" id="search-photos" type="text" placeholder="搜尋姓名或產業別…">
+    </div>
+    <div class="case-toolbar">
+      <span class="case-count" id="photos-count"></span>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <button class="btn" id="select-all-btn" type="button">全選</button>
+        <button class="btn" id="clear-selection-btn" type="button">清空</button>
+        <button class="btn primary" id="download-photos-btn" type="button" disabled>下載選中照片（已選 0）</button>
+      </div>
+    </div>
+    <div class="note" id="photos-msg" style="display:none;"></div>
+    <div id="photos-list"></div>
   </div>
 
   <footer>
@@ -572,7 +612,7 @@ document.getElementById("three-count-tab").textContent = threeTotal + " 個";
 document.getElementById("after-count-tab").textContent = afterTotal + " 個";
 
 /* ============ tabs ============ */
-const PANEL_ID_BY_TAB = { three: "panel-three", after: "panel-after", cases: "panel-cases" };
+const PANEL_ID_BY_TAB = { three: "panel-three", after: "panel-after", cases: "panel-cases", photos: "panel-photos" };
 const tabbar = document.getElementById("tabbar");
 tabbar.addEventListener("click", e => {
   const tab = e.target.closest(".tab");
@@ -582,6 +622,7 @@ tabbar.addEventListener("click", e => {
   document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
   document.getElementById(PANEL_ID_BY_TAB[tab.dataset.tab]).classList.add("active");
   if(tab.dataset.tab === "cases") loadCases();
+  if(tab.dataset.tab === "photos") loadMembers();
 });
 
 /* ============ 案例素材庫 ============ */
@@ -690,6 +731,124 @@ document.getElementById("chips-cases").addEventListener("click", e => {
   renderCases();
 });
 document.getElementById("search-cases").addEventListener("input", renderCases);
+
+/* ============ 會員照片下載 ============ */
+let allMembers = [];
+let membersLoaded = false;
+let selectedMemberIds = new Set();
+
+function filteredMembers(){
+  const q = document.getElementById("search-photos").value.trim().toLowerCase();
+  if(!q) return allMembers;
+  return allMembers.filter(m => (m.name + " " + (m.industry||"")).toLowerCase().includes(q));
+}
+
+function showPhotosMsg(text){
+  const el = document.getElementById("photos-msg");
+  if(!text){ el.style.display = "none"; el.textContent = ""; return; }
+  el.style.display = "block";
+  el.textContent = text;
+}
+
+function renderMembers(){
+  const listEl = document.getElementById("photos-list");
+  const countEl = document.getElementById("photos-count");
+  const filtered = filteredMembers();
+
+  countEl.textContent = `共 ${allMembers.length} 位會員，符合條件 ${filtered.length} 位`;
+
+  if(filtered.length === 0){
+    listEl.innerHTML = `<div class="case-empty">${
+      allMembers.length === 0 ? "目前讀不到會員名單。" : "沒有符合搜尋條件的會員。"
+    }</div>`;
+  }else{
+    listEl.innerHTML = filtered.map(m => `
+      <div class="member-row">
+        <label>
+          <input type="checkbox" data-id="${escapeHtml(m.id)}" ${selectedMemberIds.has(m.id) ? "checked" : ""}>
+          <span class="member-name">${escapeHtml(m.name)}</span>
+          <span class="member-industry">${escapeHtml(m.industry || "")}</span>
+        </label>
+      </div>
+    `).join("");
+  }
+  updateDownloadBtn();
+}
+
+function updateDownloadBtn(){
+  const btn = document.getElementById("download-photos-btn");
+  btn.textContent = `下載選中照片（已選 ${selectedMemberIds.size}）`;
+  btn.disabled = selectedMemberIds.size === 0;
+}
+
+async function loadMembers(){
+  if(membersLoaded) return;
+  const listEl = document.getElementById("photos-list");
+  listEl.innerHTML = `<div class="case-empty">載入中…（對方服務有時需要冷啟動，請稍候）</div>`;
+  try{
+    const res = await fetch("/api/members");
+    const data = await res.json().catch(() => ([]));
+    if(!res.ok){
+      throw new Error((data && data.error) || "讀取失敗");
+    }
+    allMembers = data;
+    membersLoaded = true;
+    document.getElementById("photos-count-tab").textContent = allMembers.length + " 位";
+    renderMembers();
+  }catch(err){
+    listEl.innerHTML = `<div class="case-empty">${escapeHtml(err.message || "會員名單載入失敗，請重新整理頁面再試一次。")}</div>`;
+  }
+}
+
+document.getElementById("photos-list").addEventListener("change", e => {
+  const cb = e.target.closest('input[type=checkbox]');
+  if(!cb) return;
+  if(cb.checked) selectedMemberIds.add(cb.dataset.id);
+  else selectedMemberIds.delete(cb.dataset.id);
+  updateDownloadBtn();
+});
+document.getElementById("search-photos").addEventListener("input", renderMembers);
+document.getElementById("select-all-btn").addEventListener("click", () => {
+  filteredMembers().forEach(m => selectedMemberIds.add(m.id));
+  renderMembers();
+});
+document.getElementById("clear-selection-btn").addEventListener("click", () => {
+  selectedMemberIds.clear();
+  renderMembers();
+});
+document.getElementById("download-photos-btn").addEventListener("click", async () => {
+  if(selectedMemberIds.size === 0) return;
+  const btn = document.getElementById("download-photos-btn");
+  const ids = [...selectedMemberIds];
+  btn.disabled = true;
+  btn.textContent = `打包中，請稍候…（共 ${ids.length} 張，會逐一下載，可能要一點時間）`;
+  showPhotosMsg("");
+  try{
+    const res = await fetch("/api/members/photos.zip", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+    if(!res.ok){
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "下載失敗，請稍後再試");
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "member-photos.zip";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showPhotosMsg("下載完成。如果 zip 裡有「下載失敗名單.txt」，代表那幾位會員目前還沒有照片或對方服務當下沒回應，可以之後再試一次。");
+  }catch(err){
+    showPhotosMsg("下載照片失敗：" + (err.message || "請稍後再試"));
+  }finally{
+    updateDownloadBtn();
+  }
+});
 
 /* ============ schedule table ============ */
 const calBody = document.getElementById("cal-body");
