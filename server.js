@@ -168,6 +168,30 @@ async function appendRecord(record) {
 
 app.use(express.json());
 
+// 素材下載檔案（目前是三分鐘培訓簡報母片），實際檔案放在 public/downloads/ 底下。
+// 存檔案時瀏覽器看到的檔名這裡刻意用英文：測試發現部分瀏覽器（尤其舊版 Chrome／
+// 內嵌瀏覽器）在 Content-Disposition 標頭或 HTML download 屬性帶中文檔名時會出錯，
+// 直接把檔案存成一個沒有副檔名的「download」檔案，使用者常常打不開、搞不清楚是什麼檔案。
+// 改用純英文檔名可以確保各種瀏覽器都能穩定存成正確的 .pptx 檔；網頁上的按鈕文字跟卡片
+// 說明還是用中文，使用者看畫面就知道這是什麼檔案，不影響辨識。
+// 之後要換新的母片檔案，把新檔案放進 public/downloads/、改這裡的設定即可。
+const RESOURCE_DOWNLOADS = {
+  "/downloads/three-minute-training-master.pptx": {
+    file: "three-minute-training-master.pptx",
+    filename: "BNI-three-minute-training-master.pptx",
+  },
+};
+Object.entries(RESOURCE_DOWNLOADS).forEach(([route, { file, filename }]) => {
+  app.get(route, (req, res) => {
+    res.download(path.join(__dirname, "public", "downloads", file), filename, (err) => {
+      if (err && !res.headersSent) {
+        console.error(`下載素材檔案失敗（${route}）：`, err);
+        res.status(404).send("找不到這個下載檔案");
+      }
+    });
+  });
+});
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "views", "index.html"));
 });

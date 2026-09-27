@@ -12,7 +12,21 @@ package.json                套件設定
 views/index.html            主題庫首頁（三分鐘培訓／會後培訓／案例素材庫／會員照片下載）
 views/referral.html         引薦紀錄填寫表單頁
 google-apps-script/Code.gs  貼到 Google 試算表 Apps Script 的橋接程式碼
+public/downloads/           首頁上的素材下載檔案（例如三分鐘培訓簡報母片）
 ```
+
+## 首頁的素材下載（三分鐘培訓簡報母片）
+
+首頁「怎麼用這份清單」下方有一張卡片，放三分鐘培訓簡報母片的下載連結，方便大家找不到母片
+放在哪裡時可以直接在網站上下載。之後如果要換成新的母片檔案：
+
+1. 把新的 `.pptx` 檔案放進 `public/downloads/` 資料夾，檔名建議維持英文（例如
+   `three-minute-training-master.pptx`），不要用中文檔名——實測部分瀏覽器對中文檔名的下載
+   支援不穩定，會存成一個打不開、沒有副檔名的檔案，所以這裡刻意固定用英文檔名。
+2. 打開 `server.js`，找到 `RESOURCE_DOWNLOADS` 這個設定，把 `file`（實際檔案名稱）
+   跟 `filename`（使用者下載後看到的存檔檔名，一樣建議維持英文）改成新檔案的資訊即可。
+3. 網頁上的卡片文字（標題、說明）在 `views/index.html` 的 `.resource-card` 區塊，
+   如果要換成別的素材（不只是簡報母片），直接改那段文字跟連結網址即可。
 
 ## 第一步：設定 Google 試算表
 
