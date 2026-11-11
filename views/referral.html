@@ -208,10 +208,14 @@
 
   // 可搜尋下拉選單（combobox）：輸入文字即時過濾名單，用滑鼠點選或方向鍵＋Enter選取。
   // 預設一定要選到名單裡的人，沒選到有效的人就視為未填。
-  // allowOther=true（誰給的引薦／熱心填寫者）：清單最後會有「其他（不在名單中／非會員）」，
-  // 選了之後這個欄位會切換成自由輸入框，可以打名單外的名字（例如來賓、非會員協助填寫）；
+  // 三個欄位（誰給的引薦／引薦給誰／熱心填寫者）都 allowOther=true：清單最後會有
+  // 「其他（不在名單中／非會員）」，選了之後這個欄位會切換成自由輸入框，可以打名單外的
+  // 名字（例如新進會員還沒加進下面這份名單、來賓、非會員協助填寫等情況）；
   // 也可以再點一次「改選名單中的會員」切回搜尋模式。
-  // allowOther=false（引薦給誰）：只能選名單裡的會員，沒有自由輸入的選項。
+  // 之前「引薦給誰」設過一定要選名單裡的會員（allowOther=false），後來發現新會員剛加入時
+  // 還沒來得及加進 MEMBERS 名單，會沒辦法被選成引薦對象，所以改回三欄都可以自由輸入；
+  // 等會員清單之後改成自動從別的服務同步、不用手動維護，可以考慮要不要把「引薦給誰」
+  // 改回強制選名單。
   const OTHER_VALUE = "__other__";
   const BACK_VALUE = "__back__";
   const OTHER_LABEL = "其他（不在名單中／非會員）";
@@ -398,7 +402,7 @@
     inputEl: document.getElementById("recipient-input"),
     hiddenEl: document.getElementById("recipient"),
     listEl: document.getElementById("recipient-list"),
-    allowOther: false,
+    allowOther: true,
   });
   const submitterCombo = setupCombobox({
     wrapperEl: document.getElementById("submitter-input").closest(".combo"),
@@ -446,7 +450,7 @@
       return;
     }
     if(!recipient){
-      showMsg("請從名單選擇「引薦給誰」。", "error");
+      showMsg("請填寫「引薦給誰」（從名單選，或選「其他」自行輸入）。", "error");
       return;
     }
     if(!submitter){

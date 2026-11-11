@@ -38,8 +38,9 @@ const SOURCE_LABEL_TO_CODE = { "內部引薦": "internal", "外部引薦": "exte
 const VALID_TYPES = Object.keys(TYPE_CODE_TO_LABEL);
 const VALID_SOURCES = Object.keys(SOURCE_CODE_TO_LABEL);
 
-// 分會會員名單：「誰給的引薦」「熱心填寫者」只能從這份名單選，避免同一個人被打成不同寫法，
-// 資料清洗時比對困難。「引薦給誰」允許名單外的名字（外部引薦對象常常不是會員）。
+// 分會會員名單：網頁表單三個欄位（誰給的引薦／引薦給誰／熱心填寫者）都可以從這份名單選，
+// 也都可以選「其他」自行輸入名單外的名字（新進會員還沒加進這份名單、來賓、非會員協助
+// 填寫等情況）。這份名單只是給前端下拉選單用，後端不會擋名單外的名字。
 // 依姓氏筆畫排序（跟前端 views/referral.html 的 MEMBERS 順序一致）
 // 會員照片下載頁籤：串接朋友做的「BNI 簡報整合系統」API，取得會員大頭照打包成 zip。
 // 這支 API 是單一朋友維護、單執行緒、容易冷啟動，所以：
@@ -73,8 +74,8 @@ async function memberApiFetch(pathAndQuery, options = {}) {
   }
 }
 
-const MEMBERS = ["丁慶儒","王世品","王孟哲","王懿德","田慶堂","江柏陞","余博軒","吳書林","吳旌緯","呂孟翰","呂炘豪","李坊祥","李恩誠","李曉玫","周子嵐","周順智","周榆璇","周曜贊","林文裕","林宏一","林佩佩","林宗翰","林定豪","林品彤","林思裴","林昱璋","林家蔚","林詠淇","林駿維","侯冠瑋","洪敏智","洪翊嘉","翁煜宸","康清智","張婉靖","張博凱","張綺耘","曹原彰","梁虔駖","莊子樂","許國祥","連育正","郭玉琴","陳沛慈","陳依凡","陳宜信","陳芷綺","陳姵文","陳建安","陳春長","陳朝銘","陳睿民","陳薏如","彭澤偉","曾紹恩","曾惠君","游姿菱 Yu Sleeping Beauty","馮威憲","黃同慶","黃勇嘉","黃建華","黃莞芹","黃瑀珍","黃鈺淳","黃麗娟","黃麟翔","楊和宥","楊嘉慧","葉奕廷","葉蕥霈","雷文鳳","廖婕詠","廖愷伶","廖筱蘭","熊庭逸","劉美葳","劉宸緯","劉雍致","潘建勳","潘祥鈞","蔡伊鎔","蔡昕宏","蔡瑋倫","盧冠臻","賴丰培","戴劭哲","謝宥騏","鍾坤宏","鍾承翰","蘇姮勻"];
-const MEMBER_SET = new Set(MEMBERS);
+// 這份名單目前只當註解留著對照（跟 views/referral.html 的 MEMBERS 是同一份），
+// 後端已經不會拿它做任何驗證——三個姓名欄位都允許自由輸入，見下面 /api/referrals 的說明。
 
 async function readAll() {
   if (!SHEETS_WEBAPP_URL) return [];
@@ -213,14 +214,14 @@ app.get("/api/referrals", async (req, res) => {
 app.post("/api/referrals", async (req, res) => {
   const { referrer, recipient, amount, referralType, source, note, submitter } = req.body || {};
 
-  // 誰給的引薦／熱心填寫者：可以是名單裡的會員，也可以是網頁上選「其他」自行輸入的名字
-  // （例如來賓、非會員協助填寫），所以這裡只檢查有沒有填，不檢查是否在會員名單裡。
+  // 三個欄位（誰給的引薦／引薦給誰／熱心填寫者）都可以是名單裡的會員，也可以是網頁上選
+  // 「其他」自行輸入的名字（新進會員還沒加進名單、來賓、非會員協助填寫等情況），
+  // 所以這裡都只檢查有沒有填，不檢查是否在會員名單裡。
   if (!referrer || !String(referrer).trim()) {
     return res.status(400).json({ error: "請填寫「誰給的引薦」" });
   }
-  // 引薦給誰：一定要是會員名單裡的人。
-  if (!recipient || !MEMBER_SET.has(String(recipient).trim())) {
-    return res.status(400).json({ error: "請從名單選擇「引薦給誰」" });
+  if (!recipient || !String(recipient).trim()) {
+    return res.status(400).json({ error: "請填寫「引薦給誰」" });
   }
   if (!submitter || !String(submitter).trim()) {
     return res.status(400).json({ error: "請填寫「熱心填寫者」" });
